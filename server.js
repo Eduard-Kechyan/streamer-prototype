@@ -1,52 +1,52 @@
-const fs = require("fs");
-const path = require("path");
+const { Server } = require("socket.io");
 
-const express = require("express");
-const bodyParses = require("body-parser");
+// List of currently connected Senders
+let sender = [];
 
-const HttpError = require("./models/http-error");
-const sendRouter = require("./routes/send-routes");
-const receiveRouter = require("./routes/receive-router");
-const http = require("http");
-
-const app = express();
-
-app.use(bodyParses.json({ limit: '300mb', extended: true }));
-
-app.use("/uploads/images", express.static(path.join("uploads", "images")));
-
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE");
-    next();
-});
-
-//Routes
-app.use("/api/send", sendRouter);
-app.use("/api/receive", receiveRouter);
-
-app.use((req, res, next) => {
-    const error = new HttpError("Not found!", 404);
-    throw error;
-});
-
-app.use((error, req, res, next) => {
-    if (res.headerSent) {
-        return next(error);
+// Set up socket.io server
+const io = new Server({
+    cors: {
+        origins: "*",
     }
-    console.log(error);
-    res.status(error.code || 500);
-    res.json({ message: error.message || "An unknown error occurred!" });
 });
 
-const server = http.createServer(app);
+// Handle socket connections
+io.on("connection", (socket) => {
+    socket.code = '';
 
-require("./socket")(server);
+    // Get the generated code from Sender
+    socket.on('set_code', (code) => {
+        // Check if code already exists
+        if (sender.includes(code)) {
+            socket.emit("set_code_result", false);
+        } else {
+            socket.code = code;
 
-server.listen(7000, () => {
-    console.log('Server Started!');
+            sender.push(code)
+            socket.emit("set_code_result", true);
+        }
+    });
+
+    // Send data from Sender to Receiver
+    socket.on('send', (data) => {
+        socket.broadcast.emit("receive", {
+            code: socket.code,
+            data: data
+        });
+    });
+
+    //Handle Sender disconnecting
+    socket.on('disconnect', () => {
+        // Removing code from list of connected Senders
+        sender = sender.filter(c => c === socket.code);
+
+        // Reset socket code
+        socket.code = '';
+
+        // Telling conntected receiver that Sender has disconnected
+        socket.broadcast.emit("sender-disconnected");
+    });
 });
+
+// Listen on port 7000
+io.listen(7000);
