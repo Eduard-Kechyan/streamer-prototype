@@ -1,9 +1,9 @@
 const HttpError = require("../models/http-error");
-const User = require("../models/user");
+const AltUser = require("../models/user");
 
 // Sign Up
 const signUp = async (req, res, next) => {
-    User.findOne({ email: req.body.email })
+    AltUser.findOne({ email: req.body.email })
         .exec((err, user) => {
             if (err) {
                 return next(
@@ -12,7 +12,7 @@ const signUp = async (req, res, next) => {
             }
 
             if (user === null) {
-                User.findOne({ name: req.body.name })
+                AltUser.findOne({ name: req.body.name })
                     .exec((err, user) => {
                         if (err) {
                             return next(
@@ -46,7 +46,7 @@ const signUp = async (req, res, next) => {
 
 // Log In
 const logIn = async (req, res, next) => {
-    User.findOne({ email: req.body.email })
+    AltUser.findOne({ email: req.body.email })
         .exec((err, user) => {
             if (err) {
                 return next(
