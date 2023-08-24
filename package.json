@@ -1,5 +1,5 @@
 {
-  "name": "Grvenq Backend",
+  "name": "GrvenqBackend",
   "version": "1.0.0",
   "description": "Grvenq Chat App Backend",
   "main": "server.js",
