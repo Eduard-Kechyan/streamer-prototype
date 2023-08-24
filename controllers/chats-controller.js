@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
-const Chat = require("../models/chat");
+const AltUser = require("../models/chat");
 
 // Create chat
 const createChat = (req, res, next) => {
@@ -13,7 +13,7 @@ const createChat = (req, res, next) => {
     }
 
     // Add to database
-    Chat.create(req.body, (err, chat) => {
+    AltUser.create(req.body, (err, chat) => {
         if (err) {
             return next(
                 new HttpError("Adding chat failed!", 500, err)
@@ -26,7 +26,7 @@ const createChat = (req, res, next) => {
 
 // Get chat
 const getChat = async (req, res, next) => {
-    Chat.findOne({ [req.params.property]: req.params.value })
+    AltUser.findOne({ [req.params.property]: req.params.value })
         .exec((err, chat) => {
             if (err) {
                 return next(
@@ -40,7 +40,7 @@ const getChat = async (req, res, next) => {
 
 // Get Chats
 const getChats = async (req, res, next) => {
-    Chat.find({ _id: { $in: [req.body.chats] } })
+    AltUser.find({ _id: { $in: [req.body.chats] } })
         .exec((err, chats) => {
             if (err) {
                 return next(
@@ -61,7 +61,7 @@ const updateChat = async (req, res, next) => {
         );
     }
 
-    Chat.updateOne({ _id: req.params._id }, { ...req.body }, (err) => {
+    AltUser.updateOne({ _id: req.params._id }, { ...req.body }, (err) => {
         if (err) {
             return next(
                 new HttpError("Updating chat failed!", 500, err)
@@ -74,7 +74,7 @@ const updateChat = async (req, res, next) => {
 
 // Delete chat
 const deleteChat = async (req, res, next) => {
-    Chat.deleteOne({ _id: req.params._id }, (err) => {
+    AltUser.deleteOne({ _id: req.params._id }, (err) => {
         if (err) {
             return next(
                 new HttpError("Deleting chat failed!", 500, err)
